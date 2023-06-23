@@ -1,0 +1,67 @@
+FUNCTION_BLOCK StepChain
+VAR_INPUT
+    Start: BOOL;     // Start-Signal
+    Reset: BOOL;     // Reset-Signal
+    // Weitere Eingänge hier hinzufügen...
+END_VAR
+
+VAR_OUTPUT
+    Output1: BOOL;   // Ausgang 1
+    Output2: BOOL;   // Ausgang 2
+    // Weitere Ausgänge hier hinzufügen...
+END_VAR
+
+VAR
+    Step: INT := 0;   // Aktueller Schritt
+END_VAR
+
+METHOD ExecuteStep: BOOL
+VAR
+    StepCompleted: BOOL := FALSE;
+BEGIN
+    CASE Step OF
+        0:  // Schritt 0
+            BEGIN
+                // Code für Schritt 0 hier einfügen...
+                // Setzen Sie StepCompleted auf TRUE, wenn der Schritt abgeschlossen ist.
+            END;
+            
+        1:  // Schritt 1
+            BEGIN
+                // Code für Schritt 1 hier einfügen...
+                // Setzen Sie StepCompleted auf TRUE, wenn der Schritt abgeschlossen ist.
+            END;
+            
+        // Weitere Schritte hier hinzufügen...
+    END_CASE;
+    
+    IF StepCompleted THEN
+        Step := Step + 1;   // Zum nächsten Schritt wechseln
+        StepCompleted := FALSE;   // Zurücksetzen des StepCompleted-Flags
+    END_IF;
+    
+    IF Step > MaxStepNumber THEN
+        Step := 0;   // Zurück zum Anfang, wenn alle Schritte abgeschlossen sind
+    END_IF;
+    
+    RETURN StepCompleted;
+END_METHOD
+
+METHOD Execute: BOOL
+VAR
+    StepCompleted: BOOL;
+BEGIN
+    IF Reset THEN
+        Step := 0;   // Zurücksetzen der Schrittkette bei Reset
+    END_IF;
+    
+    IF Start THEN
+        StepCompleted := ExecuteStep();   // Aktuellen Schritt ausführen
+    ELSE
+        StepCompleted := FALSE;
+    END_IF;
+    
+    // Code für die Ausgabe der Schrittketten-Ausgänge hier einfügen...
+    
+    RETURN StepCompleted;
+END_METHOD

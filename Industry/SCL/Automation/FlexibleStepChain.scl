@@ -1,0 +1,128 @@
+FUNCTION_BLOCK Schrittkette
+VAR_INPUT
+    Start: BOOL;             // Start-Signal
+    Reset: BOOL;             // Reset-Signal
+    // Weitere Eingänge hier hinzufügen...
+END_VAR
+
+VAR_OUTPUT
+    Step: INT;               // Aktueller Schritt
+    // Weitere Ausgänge hier hinzufügen...
+END_VAR
+
+VAR
+    State: INT := 0;         // Aktueller Zustand
+    StepDefinitions: ARRAY[1..10] OF STRUCT
+                        Name: STRING(50);
+                        ExpectedValue: VARIANT;  // Erwarteter Wert für boolean oder analog
+                        InterruptStep: INT;      // Schritt, bei dem eine Unterbrechung auftritt (0, wenn kein Interrupt)
+                    END_STRUCT;
+    StepCount: INT := 0;     // Anzahl der definierten Schritte
+END_VAR
+
+METHOD DefineStep: INT
+VAR_INPUT
+    Name: STRING(50);
+    ExpectedValue: VARIANT;  // Erwarteter Wert für boolean oder analog
+    InterruptStep: INT := 0; // Schritt, bei dem eine Unterbrechung auftritt (0, wenn kein Interrupt)
+END_METHOD
+
+METHOD Execute: BOOL
+VAR
+    NextState: INT;
+BEGIN
+    IF Reset THEN
+        State := 0;             // Zurücksetzen des Zustands bei Reset
+        Step := 0;              // Zurücksetzen des Schritts
+        StepCount := 0;         // Zurücksetzen der Schrittzähler
+    END_IF;
+
+    CASE State OF
+        0:  // Zustand 0: Ausgang initialisieren
+            BEGIN
+                // Weitere Initialisierungen hier durchführen...
+                Step := 0;
+                
+                IF Start THEN
+                    NextState := 1;   // Zum nächsten Zustand wechseln
+                ELSE
+                    NextState := 0;   // Im aktuellen Zustand bleiben
+                END_IF;
+            END;
+            
+        1..10:  // Zustände 1 bis 10: Schritte der Schrittkette
+            BEGIN
+                Step := State;
+                
+                IF Reset THEN
+                    NextState := 0;   // Zum Anfangszustand zurückkehren
+                ELSE IF (Step <= StepCount) THEN
+                    IF CheckInterrupt(Step) THEN
+                        NextState := Step + 1;   // Zum nächsten Schritt wechseln (Interrupt)
+                    ELSE
+                        IF CheckExpectedValue(Step) THEN
+                            NextState := Step + 1;   // Zum nächsten Schritt wechseln
+                        ELSE
+                            NextState := Step;       // Im aktuellen Schritt bleiben
+                        END_IF;
+                    END_IF;
+                ELSE
+                    NextState := 0;   // Schrittkette beenden
+                END_IF;
+            END;
+    END_CASE;
+    
+    State := NextState;   // Aktualisieren des Zustands
+    
+    // Weitere Logik und Code für die Schrittkette hier einfügen...
+    
+    RETURN TRUE;   // Rückgabe von TRUE, um den SCL-Code kontinuierlich auszuführen
+END_METHOD
+
+METHOD CheckInterrupt(Step: INT): BOOL
+VAR
+    InterruptStep: INT;
+BEGIN
+    FOR i := 1 TO StepCount DO
+        IF (StepDefinitions[i].InterruptStep = Step) THEN
+            IF (StepDefinitions[i].ExpectedValue = TRUE) THEN
+                IF (AnalogValue >= 0.5) THEN   // Beispiel für eine analoge Unterbrechungsbedingung
+                    RETURN TRUE;   // Unterbrechung bei erwartetem Wert
+                END_IF;
+            ELSE
+                IF (BooleanValue = TRUE) THEN  // Beispiel für eine boolean Unterbrechungsbedingung
+                    RETURN TRUE;   // Unterbrechung bei erwartetem Wert
+                END_IF;
+            END_IF;
+        END_IF;
+    END_FOR;
+    
+    RETURN FALSE;   // Keine Unterbrechung
+END_METHOD
+
+METHOD CheckExpectedValue(Step: INT): BOOL
+BEGIN
+    FOR i := 1 TO StepCount DO
+        IF (StepDefinitions[i].Name = '') THEN
+            // Normale Schrittkette ohne definierten Wert
+            IF (Step = i) THEN
+                RETURN TRUE;   // Schritt gefunden
+            END_IF;
+        ELSE
+            // Schrittkette mit erwartetem Wert
+            IF (Step = i) THEN
+                IF (StepDefinitions[i].ExpectedValue = TRUE) THEN
+                    IF (BooleanValue = TRUE) THEN   // Beispiel für einen boolean erwarteten Wert
+                        RETURN TRUE;   // Erwarteter Wert erreicht
+                    END_IF;
+                ELSE
+                    IF (AnalogValue >= StepDefinitions[i].ExpectedValue) THEN   // Beispiel für einen analogen erwarteten Wert
+                        RETURN TRUE;   // Erwarteter Wert erreicht
+                    END_IF;
+                END_IF;
+            END_IF;
+        END_IF;
+    END_FOR;
+    
+    RETURN FALSE;   // Kein erwarteter Wert erreicht
+END_METHOD

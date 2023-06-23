@@ -1,0 +1,65 @@
+FUNCTION_BLOCK FrequencyConverter
+VAR_INPUT
+    Enable: BOOL;           // Aktivierungssignal
+    Start: BOOL;            // Start-Signal
+    Stop: BOOL;             // Stopp-Signal
+    FrequencySetpoint: REAL; // Soll-Frequenz
+    // Weitere Eingänge hier hinzufügen...
+END_VAR
+
+VAR_OUTPUT
+    MotorRunning: BOOL;     // Motor läuft
+    FrequencyOutput: REAL;  // Ausgangsfrequenz
+    // Weitere Ausgänge hier hinzufügen...
+END_VAR
+
+VAR
+    MotorStarted: BOOL := FALSE;   // Motor gestartet
+    MotorStopped: BOOL := FALSE;   // Motor gestoppt
+    CurrentFrequency: REAL := 0.0; // Aktuelle Frequenz
+    // Weitere interne Variablen hier hinzufügen...
+END_VAR
+
+METHOD StartMotor
+BEGIN
+    // Code zum Starten des Motors hier einfügen...
+    // Setzen Sie MotorStarted auf TRUE, wenn der Motor gestartet ist.
+    // Setzen Sie MotorStopped auf FALSE.
+END_METHOD
+
+METHOD StopMotor
+BEGIN
+    // Code zum Stoppen des Motors hier einfügen...
+    // Setzen Sie MotorStopped auf TRUE, wenn der Motor gestoppt ist.
+    // Setzen Sie MotorStarted auf FALSE.
+END_METHOD
+
+METHOD SetFrequency(Frequency: REAL)
+BEGIN
+    // Code zum Setzen der Frequenz des Frequenzumrichters hier einfügen...
+    // Aktualisieren Sie CurrentFrequency mit der neuen Frequenz.
+END_METHOD
+
+METHOD Execute
+BEGIN
+    IF Enable THEN
+        IF Start AND NOT MotorStarted THEN
+            StartMotor();                // Motor starten
+        ELSE IF Stop AND MotorStarted THEN
+            StopMotor();                 // Motor stoppen
+        ELSE IF MotorStarted THEN
+            SetFrequency(FrequencySetpoint);    // Frequenz setzen
+
+            // Code für die Aktualisierung der Ausgangsfrequenz und anderer Ausgänge hier einfügen...
+            FrequencyOutput := CurrentFrequency;
+            // Weitere Ausgaben aktualisieren...
+
+            MotorRunning := TRUE;        // Motor läuft
+        ELSE
+            MotorRunning := FALSE;       // Motor gestoppt
+        END_IF;
+    ELSE
+        StopMotor();                     // Motor stoppen, wenn nicht aktiviert
+        MotorRunning := FALSE;            // Motor gestoppt
+    END_IF;
+END_METHOD

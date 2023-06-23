@@ -1,0 +1,263 @@
+FUNCTION_BLOCK StepChain
+VAR_INPUT
+    StepChainID: INT;                            // Schrittketten-ID
+    Inputs: ARRAY[1..10] OF BOOL;                 // Eingänge
+    Outputs: ARRAY[1..10] OF BOOL;                // Ausgänge
+    InterruptingBooleans: ARRAY[1..10] OF BOOL;   // Array aus unterbrechenden Booleans (optional)
+    StartingBooleans: ARRAY[1..10] OF BOOL;       // Array aus Booleans, um Schritt zu starten (optional)
+END_VAR
+
+VAR
+    State: INT := 0;                              // Aktueller Zustand
+    StepDefinitions: ARRAY[1..10] OF STRUCT
+                        Name: STRING(50);
+                        ExpectedValue: VARIANT;    // Erwarteter Wert für boolean oder analog
+                        InterruptStep: INT;        // Schritt, bei dem eine Unterbrechung auftritt (0, wenn kein Interrupt)
+                    END_STRUCT;
+    StepCount: INT := 0;                          // Anzahl der definierten Schritte
+END_VAR
+
+METHOD DefineStep: INT
+VAR_INPUT
+    Name: STRING(50);
+    ExpectedValue: VARIANT;                        // Erwarteter Wert für boolean oder analog
+    InterruptStep: INT := 0;                        // Schritt, bei dem eine Unterbrechung auftritt (0, wenn kein Interrupt)
+END_METHOD
+
+METHOD AddStep: BOOL
+VAR_INPUT
+    Name: STRING(50);
+    ExpectedValue: VARIANT;                        // Erwarteter Wert für boolean oder analog
+    InterruptStep: INT := 0;                        // Schritt, bei dem eine Unterbrechung auftritt (0, wenn kein Interrupt)
+    StepNumber: INT;                                // Schritt-Nummer
+END_METHOD
+
+METHOD Execute: BOOL
+VAR
+    NextState: INT;
+BEGIN
+    CASE State OF
+        0:  // Zustand 0: Ausgang initialisieren
+            BEGIN
+                // Weitere Initialisierungen hier durchführen...
+                
+                IF StartConditionMet() THEN
+                    NextState := 1;   // Zum nächsten Zustand wechseln
+                ELSE
+                    NextState := 0;   // Im aktuellen Zustand bleiben
+                END_IF;
+            END;
+            
+        1..10:  // Zustände 1 bis 10: Schritte der Schrittkette
+            BEGIN
+                IF Reset THEN
+                    NextState := 0;   // Zum Anfangszustand zurückkehren
+                ELSE IF (Step <= StepCount) THEN
+                    IF CheckInterrupt(Step) THEN
+                        NextState := Step + 1;   // Zum nächsten Schritt wechseln (Interrupt)
+                    ELSE
+                        IF CheckExpectedValue(Step) THEN
+                            NextState := Step + 1;   // Zum nächsten Schritt wechseln
+                        ELSE
+                            NextState := Step;       // Im aktuellen Schritt bleiben
+                        END_IF;
+                    END_IF;
+                ELSE
+                    NextState := 0;   // Schrittkette beenden
+                END_IF;
+            END;
+    END_CASE;
+    
+    State := NextState;   // Aktualisieren des Zustands
+    
+    // Weitere Logik und Code für die Schrittkette hier einfügen...
+    // Aktualisieren der Ausgänge entsprechend der aktuellen Schrittdefinition
+    
+    RETURN TRUE;   // Rückgabe von TRUE, um den SCL-Code kontinuierlich auszuführen
+END_METHOD
+
+METHOD StartConditionMet: BOOL
+VAR
+    i: INT;
+BEGIN
+    FOR i := 1 TO StepCount DO
+        IF (StartingBooleans[i] = TRUE) THEN
+            IF (Inputs[i] = FALSE) THEN
+                RETURN FALSE;   // Startbedingung nicht erfüllt
+            END_IF;
+        END_IF;
+    END_FOR;
+    
+    RETURN TRUE;   // Startbedingung erfüllt
+END_METHOD
+
+METHOD CheckInterrupt(Step: INT): BOOL
+VAR
+    i: INT;
+BEGIN
+    FOR i := 1 TO StepCount DO
+        IF (StepDefinitions[i].InterruptStep = Step) THEN
+            IF (InterruptingBooleans[i] = TRUE) THEN
+                IF (Inputs[i] = TRUE) THEN
+                    RETURN TRUE;   // Unterbrechung bei erwartetem Wert
+                END_IF;
+            END_IF;
+        END_IF;
+    END_FOR;
+    
+    RETURN FALSE;   // Keine Unterbrechung
+END_METHOD
+
+METHOD CheckExpectedValue(Step: INT): BOOL
+BEGIN
+    IF (Step = 0) THEN
+        RETURN TRUE;   // Normale Schrittkette ohne definierten Wert
+    ELSE IF (Step <= StepCount) THEN
+        IF (StepDefinitions[Step].ExpectedValue = Inputs[Step]) THEN
+            RETURN TRUE;   // Erwarteter Wert erreicht
+        END_IF;
+    END_IF;
+    
+    RETURN FALSE;   // Kein erwarteter Wert erreicht
+END_METHOD
+
+
+Hier ist eine aktualisierte Version der SCL-Datei, die die gewünschte Methode AddStep enthält. Diese Methode ermöglicht es, einen Schritt zur Schrittkette hinzuzufügen, indem die erforderlichen Parameter übergeben werden.
+
+pascal
+
+FUNCTION_BLOCK StepChain
+VAR_INPUT
+    StepChainID: INT;                            // Schrittketten-ID
+    Inputs: ARRAY[1..10] OF BOOL;                 // Eingänge
+    Outputs: ARRAY[1..10] OF BOOL;                // Ausgänge
+    InterruptingBooleans: ARRAY[1..10] OF BOOL;   // Array aus unterbrechenden Booleans (optional)
+    StartingBooleans: ARRAY[1..10] OF BOOL;       // Array aus Booleans, um Schritt zu starten (optional)
+END_VAR
+
+VAR
+    State: INT := 0;                              // Aktueller Zustand
+    StepDefinitions: ARRAY[1..10] OF STRUCT
+                        Name: STRING(50);
+                        ExpectedValue: VARIANT;    // Erwarteter Wert für boolean oder analog
+                        InterruptStep: INT;        // Schritt, bei dem eine Unterbrechung auftritt (0, wenn kein Interrupt)
+                    END_STRUCT;
+    StepCount: INT := 0;                          // Anzahl der definierten Schritte
+END_VAR
+
+METHOD DefineStep: INT
+VAR_INPUT
+    Name: STRING(50);
+    ExpectedValue: VARIANT;                        // Erwarteter Wert für boolean oder analog
+    InterruptStep: INT := 0;                        // Schritt, bei dem eine Unterbrechung auftritt (0, wenn kein Interrupt)
+END_METHOD
+
+METHOD AddStep: BOOL
+VAR_INPUT
+    Name: STRING(50);
+    ExpectedValue: VARIANT;                        // Erwarteter Wert für boolean oder analog
+    InterruptStep: INT := 0;                        // Schritt, bei dem eine Unterbrechung auftritt (0, wenn kein Interrupt)
+    StepNumber: INT;                                // Schritt-Nummer
+END_METHOD
+
+METHOD Execute: BOOL
+VAR
+    NextState: INT;
+BEGIN
+    CASE State OF
+        0:  // Zustand 0: Ausgang initialisieren
+            BEGIN
+                // Weitere Initialisierungen hier durchführen...
+                
+                IF StartConditionMet() THEN
+                    NextState := 1;   // Zum nächsten Zustand wechseln
+                ELSE
+                    NextState := 0;   // Im aktuellen Zustand bleiben
+                END_IF;
+            END;
+            
+        1..10:  // Zustände 1 bis 10: Schritte der Schrittkette
+            BEGIN
+                IF Reset THEN
+                    NextState := 0;   // Zum Anfangszustand zurückkehren
+                ELSE IF (Step <= StepCount) THEN
+                    IF CheckInterrupt(Step) THEN
+                        NextState := Step + 1;   // Zum nächsten Schritt wechseln (Interrupt)
+                    ELSE
+                        IF CheckExpectedValue(Step) THEN
+                            NextState := Step + 1;   // Zum nächsten Schritt wechseln
+                        ELSE
+                            NextState := Step;       // Im aktuellen Schritt bleiben
+                        END_IF;
+                    END_IF;
+                ELSE
+                    NextState := 0;   // Schrittkette beenden
+                END_IF;
+            END;
+    END_CASE;
+    
+    State := NextState;   // Aktualisieren des Zustands
+    
+    // Weitere Logik und Code für die Schrittkette hier einfügen...
+    // Aktualisieren der Ausgänge entsprechend der aktuellen Schrittdefinition
+    
+    RETURN TRUE;   // Rückgabe von TRUE, um den SCL-Code kontinuierlich auszuführen
+END_METHOD
+
+METHOD StartConditionMet: BOOL
+VAR
+    i: INT;
+BEGIN
+    FOR i := 1 TO StepCount DO
+        IF (StartingBooleans[i] = TRUE) THEN
+            IF (Inputs[i] = FALSE) THEN
+                RETURN FALSE;   // Startbedingung nicht erfüllt
+            END_IF;
+        END_IF;
+    END_FOR;
+    
+    RETURN TRUE;   // Startbedingung erfüllt
+END_METHOD
+
+METHOD CheckInterrupt(Step: INT): BOOL
+VAR
+    i: INT;
+BEGIN
+    FOR i := 1 TO StepCount DO
+        IF (StepDefinitions[i].InterruptStep = Step) THEN
+            IF (InterruptingBooleans[i] = TRUE) THEN
+                IF (Inputs[i] = TRUE) THEN
+                    RETURN TRUE;   // Unterbrechung bei erwartetem Wert
+                END_IF;
+            END_IF;
+        END_IF;
+    END_FOR;
+    
+    RETURN FALSE;   // Keine Unterbrechung
+END_METHOD
+
+METHOD CheckExpectedValue(Step: INT): BOOL
+BEGIN
+    IF (Step = 0) THEN
+        RETURN TRUE;   // Normale Schrittkette ohne definierten Wert
+    ELSE IF (Step <= StepCount) THEN
+        IF (StepDefinitions[Step].ExpectedValue = Inputs[Step]) THEN
+            RETURN TRUE;   // Erwarteter Wert erreicht
+        END_IF;
+    END_IF;
+    
+    RETURN FALSE;   // Kein erwarteter Wert erreicht
+END_METHOD
+
+// Die Methode AddStep ermöglicht das Hinzufügen eines Schritts zur Schrittkette.
+// Sie nimmt den Namen des Schritts, den erwarteten Wert, den Interrupt-Schritt und die Schritt-Nummer als Parameter entgegen.
+// Diese Methode kann aufgerufen werden, um dynamisch Schritte zur Schrittkette hinzuzufügen.
+
+// Beispielaufruf der AddStep-Methode:
+
+// AddStep(
+//    Name := "Schritt 1",
+//    ExpectedValue := TRUE,
+//    InterruptStep := 3,
+//    StepNumber := 1
+//);

@@ -1,0 +1,71 @@
+FUNCTION_BLOCK Wendeschutz
+VAR_INPUT
+    Start: BOOL;             // Start-Signal
+    Stop: BOOL;              // Stop-Signal
+    ForwardButton: BOOL;     // Taster für Vorwärtsrichtung
+    ReverseButton: BOOL;     // Taster für Rückwärtsrichtung
+    // Weitere Eingänge hier hinzufügen...
+END_VAR
+
+VAR_OUTPUT
+    Forward: BOOL;           // Vorwärts-Signal
+    Reverse: BOOL;           // Rückwärts-Signal
+    // Weitere Ausgänge hier hinzufügen...
+END_VAR
+
+VAR
+    State: INT := 0;         // Aktueller Zustand
+END_VAR
+
+METHOD Execute: BOOL
+VAR
+    NextState: INT;
+BEGIN
+    CASE State OF
+        0:  // Zustand 0: Ausgang initialisieren
+            BEGIN
+                Forward := FALSE;
+                Reverse := FALSE;
+                
+                IF Start THEN
+                    NextState := 1;   // Zum nächsten Zustand wechseln
+                ELSE
+                    NextState := 0;   // Im aktuellen Zustand bleiben
+                END_IF;
+            END;
+            
+        1:  // Zustand 1: Bewegung in Richtung 1 (Vorwärtsbewegung)
+            BEGIN
+                Forward := TRUE;
+                Reverse := FALSE;
+                
+                IF Stop THEN
+                    NextState := 0;   // Zum Anfangszustand zurückkehren
+                ELSE IF ReverseButton THEN
+                    NextState := 2;   // Wechseln in Zustand 2 (Rückwärtsbewegung)
+                ELSE
+                    NextState := 1;   // Im aktuellen Zustand bleiben
+                END_IF;
+            END;
+            
+        2:  // Zustand 2: Bewegung in Richtung 2 (Rückwärtsbewegung)
+            BEGIN
+                Forward := FALSE;
+                Reverse := TRUE;
+                
+                IF Stop THEN
+                    NextState := 0;   // Zum Anfangszustand zurückkehren
+                ELSE IF ForwardButton THEN
+                    NextState := 1;   // Wechseln in Zustand 1 (Vorwärtsbewegung)
+                ELSE
+                    NextState := 2;   // Im aktuellen Zustand bleiben
+                END_IF;
+            END;
+    END_CASE;
+    
+    State := NextState;   // Aktualisieren des Zustands
+    
+    // Weitere Logik
+    
+    RETURN TRUE;   // Rückgabe von TRUE, um den SCL-Code kontinuierlich auszuführen
+END_METHOD

@@ -1,0 +1,45 @@
+FUNCTION_BLOCK StepperMotor
+VAR_INPUT
+    Enable: BOOL;           // Aktivierungssignal
+    Step: BOOL;             // Schritt-Signal
+    Direction: BOOL;        // Richtungs-Signal
+    // Weitere Eingänge hier hinzufügen...
+END_VAR
+
+VAR_OUTPUT
+    Position: INT;          // Aktuelle Position
+    // Weitere Ausgänge hier hinzufügen...
+END_VAR
+
+VAR
+    StepCounter: INT := 0;   // Schrittzähler
+    // Weitere interne Variablen hier hinzufügen...
+END_VAR
+
+METHOD StepMotor
+BEGIN
+    IF Enable THEN
+        IF Step THEN
+            IF Direction THEN
+                StepCounter := StepCounter + 1;   // Schritt in positiver Richtung
+            ELSE
+                StepCounter := StepCounter - 1;   // Schritt in negativer Richtung
+            END_IF
+
+            // Code für die Ansteuerung des Schrittmotors hier einfügen...
+            // Position entsprechend aktualisieren
+            // Weitere Aktionen basierend auf dem Schritt ausführen...
+
+            Position := StepCounter;   // Aktuelle Position setzen
+        END_IF
+    END_IF
+END_METHOD
+
+METHOD Execute
+BEGIN
+    StepMotor();   // Schrittmotor ansteuern
+
+    // Weitere Logik und Code für die Steuerung des Schrittmotors hier einfügen...
+    // Aktualisieren der Ausgänge entsprechend
+
+END_METHOD

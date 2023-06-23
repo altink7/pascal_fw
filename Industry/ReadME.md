@@ -1,4 +1,5 @@
 # Projektname
+Pascal_FW
 
 ## Beschreibung
 Dieses Projekt enthält den SCL-Code für verschiedene Schaltungen, einschließlich Wende- und Motorschutz, die im Siemens TIA Portal implementiert werden können.
@@ -28,3 +29,5 @@ Altin Kelmendi
 ## Lizenz
 Dieses Projekt ist unter der MIT-Lizenz lizenziert. Weitere Informationen finden Sie in der `LICENSE`-Datei.
 
+## Ziel des Projekts
+Das Ziel dieses Projekts ist es, Menschen bei der Erstellung neuer Projekte mit dem Siemens TIA Portal zu unterstützen. Die bereitgestellten Schaltungsbeispiele und der abstrakte SCL-Code sollen als Anleitung und Unterstützung dienen, um die Programmierung von Schaltungen in TIA Portal zu erleichtern. Durch die Verwendung dieser Vorlagen können Entwickler Zeit sparen und schnell mit der Umsetzung ihrer eigenen Projekte beginnen.
