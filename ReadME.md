@@ -1,5 +1,5 @@
-# Projektname
-Pascal_FW
+# SCL_FW
+
 
 ## Beschreibung
 Dieses Projekt enthält den SCL-Code für verschiedene Schaltungen, einschließlich Wende- und Motorschutz, die im Siemens TIA Portal implementiert werden können.
